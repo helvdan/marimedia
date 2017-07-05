@@ -29,6 +29,7 @@ from lxml import etree
 from dateparser import parse
 from datetime import datetime, date
 import argparse
+import pickle
 
 
 def generate_urls(base_url):
@@ -48,7 +49,6 @@ def parse_newsline(page_html):
             'description': item.cssselect('.small-desc')[0].text,
             'category': item.cssselect('.category')[0].text
         }
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Number of articles.')
@@ -72,11 +72,8 @@ if __name__ == '__main__':
         for article in parse_newsline(page_html):
 
             if len(articles) == articles_count:
-                for article in articles:
-                    print u'{pubdate}  {title}'.format(
-                        pubdate=article['pubdate'].strftime('%H:%M'),
-                        title=article['title']
-                    )
-                exit()
+                with open('data/articles.pkl', 'w+') as data_file:
+                    pickle.dump(articles, data_file)
+                    print "Data saved!"
 
             articles.append(article)
