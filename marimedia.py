@@ -21,25 +21,50 @@ from dateparser import parse
 #     ...
 # }
 # 5. Собирать с первых 3-х страниц (http://www.marimedia.ru/news/archive/2017/07/, http://www.marimedia.ru/news/archive/2017/07/?p=2, http://www.marimedia.ru/news/archive/2017/07/?p=3)
-# 6. Сохранить данные на диск
+# 6. Сделать ограничение по количеству статей, количество страниц пагинации убрать. Значение количества статей передавать через обязательный параметр в командной строке.
+# 6.5 Выводиться должно по шаблону 17:00  Заголовок новости
+# 7. Сохранить данные на диск
 
 import requests
 from lxml import etree
-from datetime import datetime
+from datetime import datetime, date
 
-page_text = requests.get('http://www.marimedia.ru/news/archive/2017/07/?p=1').text
-page_html = etree.HTML(page_text)
 
-news = []
-for item in page_html.cssselect('article.news_item'):
-    post = {
-        'link': item.get('href'),
-        'title': item.cssselect('.news_title')[0].text,
-        'pubdate': parse(item.cssselect('.date')[0].text),
-        'description': item.cssselect('.small-desc')[0].text,
-        'category': item.cssselect('.category')[0].text
-    }
-    news.append(post)
+def generate_urls(count, base_url):
+    output = []
 
-for item in news:
-    print item
+    output.append(base_url)
+    for x in range(2, count + 1):
+        output.append(base_url + '?p=%s' % x)
+
+    return output
+
+
+def parse_newsline(page_html):
+    for item in page_html.cssselect('article.news_item'):
+        yield {
+            'link': item.get('href'),
+            'title': item.cssselect('.news_title')[0].text,
+            'pubdate': parse(item.cssselect('.date')[0].text),
+            'description': item.cssselect('.small-desc')[0].text,
+            'category': item.cssselect('.category')[0].text
+        }
+
+
+NUMBER_OF_PAGES = 3
+
+today = date.today()
+base_url = today.strftime('http://www.marimedia.ru/news/archive/%Y/%m/')
+
+articles = []
+
+for url in generate_urls(NUMBER_OF_PAGES, base_url):
+    page_text = requests.get(url).text
+    page_html = etree.HTML(page_text)
+    page_links = page_html.cssselect('article.news_item')
+
+    for article in parse_newsline(page_html):
+        articles.append(article)
+
+for article in articles:
+    print str(article['pubdate']) + ' ' + article['title']
