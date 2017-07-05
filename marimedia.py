@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from dateparser import parse
 
 # 1. Создать репозиторий на github
 # 2. Создавать ссылку типа http://www.marimedia.ru/news/archive/2017/07/ динамически, исходя из текущей даты
@@ -27,17 +26,17 @@ from dateparser import parse
 
 import requests
 from lxml import etree
+from dateparser import parse
 from datetime import datetime, date
+import argparse
 
 
-def generate_urls(count, base_url):
-    output = []
-
-    output.append(base_url)
-    for x in range(2, count + 1):
-        output.append(base_url + '?p=%s' % x)
-
-    return output
+def generate_urls(base_url):
+    yield base_url
+    page_num = 2
+    while True:
+        yield base_url + '?p=%s' % page_num
+        page_num += 1
 
 
 def parse_newsline(page_html):
@@ -51,20 +50,33 @@ def parse_newsline(page_html):
         }
 
 
-NUMBER_OF_PAGES = 3
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Number of articles.')
+    parser.add_argument(
+        '--articles_count', required=True, help='number of aritcles to be fetched', type=int
+    )
+    args = parser.parse_args()
 
-today = date.today()
-base_url = today.strftime('http://www.marimedia.ru/news/archive/%Y/%m/')
+    articles_count = args.articles_count
 
-articles = []
+    today = date.today()
+    base_url = today.strftime('http://www.marimedia.ru/news/archive/%Y/%m/')
 
-for url in generate_urls(NUMBER_OF_PAGES, base_url):
-    page_text = requests.get(url).text
-    page_html = etree.HTML(page_text)
-    page_links = page_html.cssselect('article.news_item')
+    articles = []
 
-    for article in parse_newsline(page_html):
-        articles.append(article)
+    for url in generate_urls(base_url):
+        page_text = requests.get(url).text
+        page_html = etree.HTML(page_text)
+        page_links = page_html.cssselect('article.news_item')
 
-for article in articles:
-    print str(article['pubdate']) + ' ' + article['title']
+        for article in parse_newsline(page_html):
+
+            if len(articles) == articles_count:
+                for article in articles:
+                    print u'{pubdate}  {title}'.format(
+                        pubdate=article['pubdate'].strftime('%H:%M'),
+                        title=article['title']
+                    )
+                exit()
+
+            articles.append(article)
