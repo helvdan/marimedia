@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# 1. Выводить новости за день, указанный в параметре командной строки
-# python show_articles.py --date=2017-07-04
-
 import argparse
 import pickle
 from settings import DATA_PATH
