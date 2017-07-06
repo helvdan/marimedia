@@ -30,6 +30,7 @@ from dateparser import parse
 from datetime import datetime, date
 import argparse
 import pickle
+from settings import DATA_PATH
 
 
 def generate_urls(base_url):
@@ -43,7 +44,7 @@ def generate_urls(base_url):
 def parse_newsline(page_html):
     for item in page_html.cssselect('article.news_item'):
         yield {
-            'link': item.get('href'),
+            'link': str(item.xpath('.//a[@class = "news_title"]/@href')[0]),
             'title': item.cssselect('.news_title')[0].text,
             'pubdate': parse(item.cssselect('.date')[0].text),
             'description': item.cssselect('.small-desc')[0].text,
@@ -72,8 +73,11 @@ if __name__ == '__main__':
         for article in parse_newsline(page_html):
 
             if len(articles) == articles_count:
-                with open('data/articles.pkl', 'w+') as data_file:
+                with open(DATA_PATH, 'w+') as data_file:
+                    print articles
                     pickle.dump(articles, data_file)
                     print "Data saved!"
+
+                exit()
 
             articles.append(article)
