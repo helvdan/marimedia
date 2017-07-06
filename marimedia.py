@@ -14,7 +14,7 @@ from datetime import datetime, date
 import argparse
 import pickle
 from settings import DATA_PATH
-
+import marimedia_parse_article
 
 def generate_urls(base_url):
     yield base_url
@@ -26,12 +26,14 @@ def generate_urls(base_url):
 
 def parse_newsline(page_html):
     for item in page_html.cssselect('article.news_item'):
+        article_url = str(item.xpath('.//a[@class = "news_title"]/@href')[0])
         yield {
-            'link': str(item.xpath('.//a[@class = "news_title"]/@href')[0]),
+            'link': article_url,
             'title': item.cssselect('.news_title')[0].text,
             'pubdate': parse(item.cssselect('.date')[0].text),
             'description': item.cssselect('.small-desc')[0].text,
-            'category': item.cssselect('.category')[0].text
+            'category': item.cssselect('.category')[0].text,
+            'body': marimedia_parse_article.parse_article(article_url)['body']
         }
 
 if __name__ == '__main__':
@@ -60,6 +62,7 @@ if __name__ == '__main__':
                     print articles
                     pickle.dump(articles, data_file)
                     print "Data saved!"
+                    print '\n'
 
                 exit()
 

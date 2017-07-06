@@ -24,6 +24,8 @@ with open(DATA_PATH, 'r') as data_file:
         print "%s news found" % len(output)
 
         for article in output:
-            print str(article['pubdate'].strftime("%Y-%m-%d %H:%M")) + '  ' + unicode(article['title']) + '  ' + unicode(article['link'])
+            print str(article['pubdate'].strftime("%Y-%m-%d %H:%M")) + '  ' + unicode(article['title'])
+            print unicode(article['link'])
+            print str(article['body'])
     else:
         print "Sorry, for " + str(pubdate) + " no news found"
