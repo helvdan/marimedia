@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# {
-#     'link': ...,
-#     'title': ...,
-#     'body': ...,
-#     'description': ...,
-# }
-
 import requests
 from lxml import etree
 from dateparser import parse

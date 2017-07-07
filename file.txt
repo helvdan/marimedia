@@ -1,7 +1,0 @@
-(lp0
-S'Str'
-p1
-a(I2
-I3
-tp2
-a.
